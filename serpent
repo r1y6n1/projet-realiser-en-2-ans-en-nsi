@@ -1,0 +1,24 @@
+from p5 import*
+def cubes(f):
+    stroke(100)
+    for n in range(20):
+        
+        T(40,30*sin(18*(n+f)))
+        fill((f+n)%100,100,100,40)
+        box(40)
+def setup():
+    global T, f, X
+    angleMode(DEGREES)
+    createCanvas(900,600,WEBGL)
+    colorMode(HSB,100)
+    T,X=translate, rotateX
+    f=0
+    frameRate(12)
+def draw():
+    global f
+    background(0)
+    X(f)
+    T(-400,0,0)
+    cubes(f)
+    f += 1
+run()
