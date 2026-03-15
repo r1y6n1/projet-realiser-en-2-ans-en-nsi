@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Informatique - Version Sophistiquée</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #f661c4;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --correct-color: #2ec4b6;
+            --incorrect-color: #e71d36;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+
+        .subtitle {
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        #quiz {
+            padding: 30px;
+        }
+
+        .question-container {
+            background-color: #f8f9fa;
+            border-left: 5px solid var(--primary-color);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .question-container:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+        }
+
+        .options {
+            margin-left: 20px;
+        }
+
+        .option {
+            margin: 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .option input {
+            margin-right: 10px;
+        }
+
+        .option label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.25);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #reset-btn {
+            background-color: #6c757d;
+        }
+
+        #hint-btn {
+            background-color: var(--success-color);
+        }
+
+        #correction-btn {
+            background-color: var(--warning-color);
+        }
+
+        .hint {
+            display: none;
+            background-color: #e3f2fd;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-style: italic;
+        }
+
+        #results {
+            display: none;
+            padding: 20px;
+            margin-top: 30px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.5s ease;
+        }
+
+        .score-container {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            color: white;
+        }
+
+        .high-score {
+            background: linear-gradient(135deg, #06d6a0, #1b9aaa);
+        }
+
+        .medium-score {
+            background: linear-gradient(135deg, #ffd166, #ef476f);
+        }
+
+        .low-score {
+            background: linear-gradient(135deg, #ef476f, #d62828);
+        }
+
+        .score-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-message {
+            font-style: italic;
+        }
+
+        .correction-title {
+            font-size: 1.3rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 5px;
+        }
+
+        .correction-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .correct {
+            background-color: rgba(46, 196, 182, 0.1);
+            border-left: 4px solid var(--correct-color);
+        }
+
+        .incorrect {
+            background-color: rgba(231, 29, 54, 0.1);
+            border-left: 4px solid var(--incorrect-color);
+        }
+
+        .correction-status {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .correct .correction-status {
+            color: var(--correct-color);
+        }
+
+        .incorrect .correction-status {
+            color: var(--incorrect-color);
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .contributor {
+            font-weight: bold;
+        }
+
+        /* Style pour les réponses correctes/incorrectes après correction */
+        .highlight-correct {
+            border-color: var(--correct-color) !important;
+            background-color: rgba(46, 196, 182, 0.1);
+        }
+
+        .highlight-incorrect {
+            border-color: var(--incorrect-color) !important;
+            background-color: rgba(231, 29, 54, 0.1);
+        }
+
+        /* Responsive design */
+        @media screen and (max-width: 768px) {
+            .container {
+                width: 100%;
+                margin: 0;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        /* Animation pour les résultats */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #results.show {
+            display: block;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Animation du score */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .score-value {
+            animation: pulse 2s infinite;
+        }
+
+        /* Image pour score bas/élevé */
+        .score-image {
+            width: 100px;
+            height: 100px;
+            margin: 15px auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quiz sur l'Informatique</h1>
+            <p class="subtitle">Testez vos connaissances en algorithmique et architecture</p>
+        </header>
+
+        <form name="quiz" id="quiz">
+            <div class="question-container" id="q1-container">
+                <p class="question-title">1. Quel est le rôle principal d'un algorithme ?</p>
+                <div class="options">
+                    <div class="option">
+                        <input name="question1" type="radio" id="q1a" value="a">
+                        <label for="q1a">Décorer une page web</label>
+                    </div>
+                    <div class="option">
+                        <input name="question1" type="radio" id="q1b" value="b">
+                        <label for="q1b">Stocker des données</label>
+                    </div>
+                    <div class="option">
+                        <input name="question1" type="radio" id="q1c" value="c">
+                        <label for="q1c">Résoudre un problème étape par étape</label>
+                    </div>
+                    <div class="option">
+                        <input name="question1" type="radio" id="q1d" value="d">
+                        <label for="q1d">Transmettre des données sans erreur</label>
+                    </div>
+                </div>
+                <div class="hint" id="hint1">
+                    <strong>Indice :</strong> Pensez à ce que fait un algorithme à sa plus simple expression : il prend un problème et le transforme en série d'étapes logiques.
+                </div>
+            </div>
+
+            <div class="question-container" id="q2-container">
+                <p class="question-title">2. Quelle est la valeur décimale du nombre binaire 1011 ?</p>
+                <div class="options">
+                    <input type="text" id="question2" name="question2" placeholder="Entrez votre réponse">
+                </div>
+                <div class="hint" id="hint2">
+                    <strong>Indice :</strong> En binaire, chaque position correspond à une puissance de 2 (de droite à gauche) : 2^0, 2^1, 2^2, etc. Additionnez les valeurs où il y a un 1.
+                </div>
+            </div>
+
+            <div class="question-container" id="q3-container">
+                <p class="question-title">3. Quelle structure permet de répéter une série d'instructions jusqu'à ce qu'une condition soit fausse?</p>
+                <div class="options">
+                    <input type="text" id="question3" name="question3" placeholder="Entrez votre réponse">
+                </div>
+                <div class="hint" id="hint3">
+                    <strong>Indice :</strong> Cette structure est essentielle en programmation et permet de répéter du code tant qu'une condition reste vraie.
+                </div>
+            </div>
+
+            <div class="question-container" id="q4-container">
+                <p class="question-title">4. Quel composant est considéré comme le "cerveau" de l'ordinateur ?</p>
+                <div class="options">
+                    <div class="option">
+                        <input name="question4" type="radio" id="q4a" value="a">
+                        <label for="q4a">Le disque dur</label>
+                    </div>
+                    <div class="option">
+                        <input name="question4" type="radio" id="q4b" value="b">
+                        <label for="q4b">Le processeur (CPU)</label>
+                    </div>
+                    <div class="option">
+                        <input name="question4" type="radio" id="q4c" value="c">
+                        <label for="q4c">La carte graphique</label>
+                    </div>
+                </div>
+                <div class="hint" id="hint4">
+                    <strong>Indice :</strong> Ce composant traite les instructions et effectue tous les calculs nécessaires au fonctionnement de l'ordinateur.
+                </div>
+            </div>
+
+            <div class="question-container" id="q5-container">
+                <p class="question-title">5. Quel algorithme de tri est basé sur le principe "diviser pour mieux régner" ?</p>
+                <div class="options">
+                    <div class="option">
+                        <input name="question5" type="radio" id="q5a" value="a">
+                        <label for="q5a">Tri rapide (Quick Sort)</label>
+                    </div>
+                    <div class="option">
+                        <input name="question5" type="radio" id="q5b" value="b">
+                        <label for="q5b">Tri par sélection</label>
+                    </div>
+                    <div class="option">
+                        <input name="question5" type="radio" id="q5c" value="c">
+                        <label for="q5c">Tri par insertion</label>
+                    </div>
+                </div>
+                <div class="hint" id="hint5">
+                    <strong>Indice :</strong> Cet algorithme divise récursivement le tableau en sous-tableaux autour d'un pivot.
+                </div>
+            </div>
+
+            <div class="question-container" id="q6-container">
+                <p class="question-title">6. Quelles affirmations décrivent correctement un algorithme ?</p>
+                <div class="options">
+                    <div class="option">
+                        <input name="question6" type="checkbox" id="q6a" value="1">
+                        <label for="q6a">C'est une suite d'instructions ordonnées</label>
+                    </div>
+                    <div class="option">
+                        <input name="question6" type="checkbox" id="q6b" value="2">
+                        <label for="q6b">Il doit forcément être codé en Python</label>
+                    </div>
+                    <div class="option">
+                        <input name="question6" type="checkbox" id="q6c" value="3">
+                        <label for="q6c">Il permet de résoudre un problème</label>
+                    </div>
+                </div>
+                <div class="hint" id="hint6">
+                    <strong>Indice :</strong> Un algorithme est indépendant du langage de programmation et définit une méthode pour résoudre un problème.
+                </div>
+            </div>
+
+            <div class="question-container" id="q7-container">
+                <p class="question-title">7. Quelles affirmations sont correctes à propos de la RAM ?</p>
+                <div class="options">
+                    <div class="option">
+                        <input name="question7" type="checkbox" id="q7a" value="1">
+                        <label for="q7a">Elle est permanente</label>
+                    </div>
+                    <div class="option">
+                        <input name="question7" type="checkbox" id="q7b" value="2">
+                        <label for="q7b">Elle est volatile</label>
+                    </div>
+                    <div class="option">
+                        <input name="question7" type="checkbox" id="q7c" value="3">
+                        <label for="q7c">Elle est très rapide</label>
+                    </div>
+                </div>
+                <div class="hint" id="hint7">
+                    <strong>Indice :</strong> La RAM perd son contenu lorsque l'ordinateur est éteint, mais elle est beaucoup plus rapide que le stockage permanent.
+                </div>
+            </div>
+            <div class="question-container" id="q8-container">
+                <p class="question-title">8. Lequel des algorithmes a la meilleure complexité moyenne ?</p>
+                <div class="options">
+                    <input type="text" id="question8" name="question8" placeholder="Entrez votre réponse">
+                </div>
+                <div class="hint" id="hint8">
+                    <strong>Indice :</strong> Cherchez celui dont la complexité moyenne est la plus basse.
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" id="hint-btn" onclick="toggleHints()">Afficher les indices</button>
+                <button type="button" id="check-btn" onclick="verifier()">Vérifier mes réponses</button>
+                <button type="button" id="reset-btn" onclick="reinitialiser()">Remettre à zéro</button>
+            </div>
+        </form>
+
+        <div id="results">
+            <div class="score-container" id="score-display">
+                <h2 class="score-title">Votre score</h2>
+                <div class="score-value" id="score-value">0/8</div>
+                <div id="score-image-container"></div>
+                <p class="score-message" id="score-message"></p>
+            </div>
+
+            <div class="correction-details">
+                <h3 class="correction-title">Détails de la correction</h3>
+                <div id="correction-list"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Quiz développé par <span class="contributor">Rayhana</span></p>
+            <details>
+                <summary>Voir les contributions</summary>
+                <p><strong>rayhana :</strong> Structure HTML, design CSS, logique JavaScript principale, système d'indices. Les défis principaux ont été la gestion des questions à choix multiples et l'affichage dynamique de la correction.
+                 Fonctionnalités avancées, animations CSS, système de score avec images, responsive design. Le principal défi a été l'intégration des éléments visuels changeant selon le score.</p>
+            </details>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales
+        let hintsVisible = false;
+        
+        // Fonction pour réinitialiser le quiz
+        function reinitialiser() {
+            document.getElementById("quiz").reset();
+            document.getElementById("results").classList.remove("show");
+            
+            // Réinitialiser les couleurs des questions
+            const questionContainers = document.querySelectorAll(".question-container");
+            questionContainers.forEach(container => {
+                container.classList.remove("highlight-correct", "highlight-incorrect");
+            });
+            
+            // Cacher les indices s'ils sont visibles
+            if (hintsVisible) {
+                toggleHints();
+            }
+            
+            // Scroll vers le haut
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Fonction pour afficher/masquer les indices
+        function toggleHints() {
+            const hints = document.querySelectorAll(".hint");
+            const hintBtn = document.getElementById("hint-btn");
+            
+            hintsVisible = !hintsVisible;
+            
+            hints.forEach(hint => {
+                hint.style.display = hintsVisible ? "block" : "none";
+            });
+            
+            hintBtn.textContent = hintsVisible ? "Masquer les indices" : "Afficher les indices";
+            hintBtn.style.backgroundColor = hintsVisible ? "#f72585" : "#4cc9f0";
+        }
+        
+        // Fonction pour vérifier les réponses
+        function verifier() {
+            // On récupère les valeurs saisies
+            const question1 = document.querySelector('input[name="question1"]:checked');
+            const question2 = document.getElementById("question2").value.trim();
+            const question3 = document.getElementById("question3").value.trim();
+            const question4 = document.querySelector('input[name="question4"]:checked');
+            const question5 = document.querySelector('input[name="question5"]:checked');
+            const question6Checked = document.querySelectorAll('input[name="question6"]:checked');
+            const question7Checked = document.querySelectorAll('input[name="question7"]:checked');
+            const question8 = document.getElementById("question8").value.trim().toLowerCase();
+            
+            // On gère le score en fonction des réponses
+            let score = 0;
+            let correctionItems = [];
+            
+            // Vérification Q1
+            const q1Value = question1 ? question1.value : '';
+            const q1Correct = q1Value === "c";
+            if (q1Correct) score++;
+            
+            correctionItems.push({
+                question: 1,
+                correct: q1Correct,
+                userAnswer: q1Value,
+                correctAnswer: "c",
+                explanation: "Un algorithme est conçu pour résoudre un problème étape par étape de manière systématique."
+            });
+            
+            // Vérification Q2
+            const q2Correct = question2.toLowerCase() === "11";
+            if (q2Correct) score++;
+            
+            correctionItems.push({
+                question: 2,
+                correct: q2Correct,
+                userAnswer: question2,
+                correctAnswer: "11",
+                explanation: "1011 en binaire = 1×2³ + 0×2² + 1×2¹ + 1×2⁰ = 8 + 0 + 2 + 1 = 11 en décimal."
+            });
+            
+            // Vérification Q3
+            const q3Correct = question3.toLowerCase() === "une boucle" || question3.toLowerCase() === "boucle";
+            if (q3Correct) score++;
+            
+            correctionItems.push({
+                question: 3,
+                correct: q3Correct,
+                userAnswer: question3,
+                correctAnswer: "une boucle",
+                explanation: "Une boucle (comme while, for, do-while) répète des instructions tant qu'une condition est vraie."
+            });
+            
+            // Vérification Q4
+            const q4Value = question4 ? question4.value : '';
+            const q4Correct = q4Value === "b";
+            if (q4Correct) score++;
+            
+            correctionItems.push({
+                question: 4,
+                correct: q4Correct,
+                userAnswer: q4Value,
+                correctAnswer: "b",
+                explanation: "Le processeur (CPU) est considéré comme le cerveau de l'ordinateur car il exécute toutes les instructions."
+            });
+            
+            // Vérification Q5
+            const q5Value = question5 ? question5.value : '';
+            const q5Correct = q5Value === "a";
+            if (q5Correct) score++;
+            
+            correctionItems.push({
+                question: 5,
+                correct: q5Correct,
+                userAnswer: q5Value,
+                correctAnswer: "a",
+                explanation: "Le Tri rapide (Quick Sort) utilise le principe 'diviser pour régner' en divisant le tableau autour d'un pivot."
+            });
+            
+            // Vérification Q6
+            const q6Selected = Array.from(question6Checked).map(cb => cb.value);
+            const q6Correct = q6Selected.includes("1") && q6Selected.includes("3") && !q6Selected.includes("2");
+            if (q6Correct) score++;
+            
+            correctionItems.push({
+                question: 6,
+                correct: q6Correct,
+                userAnswer: q6Selected.join(", "),
+                correctAnswer: "1, 3",
+                explanation: "Un algorithme est une suite d'instructions ordonnées pour résoudre un problème, mais il n'est pas lié à un langage spécifique."
+            });
+            
+            // Vérification Q7
+            const q7Selected = Array.from(question7Checked).map(cb => cb.value);
+            const q7Correct = q7Selected.includes("2") && q7Selected.includes("3") && !q7Selected.includes("1");
+            if (q7Correct) score++;
+            
+            correctionItems.push({
+                question: 7,
+                correct: q7Correct,
+                userAnswer: q7Selected.join(", "),
+                correctAnswer: "2, 3",
+                explanation: "La RAM est volatile (perd son contenu à l'extinction) et très rapide, mais pas permanente."
+            });
+            
+            // Vérification Q8
+            const q8Correct = question8 === "tri rapide" || question8 === "quick sort" || question8 === "quicksort";
+            if (q8Correct) score++;
+            
+            correctionItems.push({
+                question: 8,
+                correct: q8Correct,
+                userAnswer: question8,
+                correctAnswer: "tri rapide (quick sort)",
+                explanation: "Le tri rapide a une complexité moyenne de O(n log n), ce qui est meilleur que la plupart des algorithmes de tri simples."
+            });
+            
+            // Afficher les résultats
+            displayResults(score, correctionItems);
+        }
+        
+        // Fonction pour afficher les résultats
+        function displayResults(score, correctionItems) {
+            const totalQuestions = 8;
+            const percentage = (score / totalQuestions) * 100;
+            
+            // Afficher le score
+            document.getElementById("score-value").textContent = `${score}/${totalQuestions}`;
+            
+            // Définir la couleur et le message selon le score
+            const scoreContainer = document.getElementById("score-display");
+            const scoreMessage = document.getElementById("score-message");
+            const imageContainer = document.getElementById("score-image-container");
+            
+            // Réinitialiser les classes et l'image
+            scoreContainer.className = "score-container";
+            imageContainer.innerHTML = "";
+            
+            // Appliquer le style selon le score
+            if (percentage >= 70) {
+                scoreContainer.classList.add("high-score");
+                scoreMessage.textContent = "Excellent ! Vous maîtrisez bien ces concepts.";
+                imageContainer.innerHTML = `<svg class="score-image" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="40" fill="#06d6a0" />
+                    <path d="M30 50 L45 65 L70 35" stroke="white" stroke-width="8" fill="none" />
+                </svg>`;
+            } else if (percentage >= 40) {
+                scoreContainer.classList.add("medium-score");
+                scoreMessage.textContent = "Pas mal ! Mais il y a encore matière à apprendre.";
+                imageContainer.innerHTML = `<svg class="score-image" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="40" fill="#ffd166" />
+                    <line x1="35" y1="50" x2="65" y2="50" stroke="white" stroke-width="8" />
+                </svg>`;
+            } else {
+                scoreContainer.classList.add("low-score");
+                scoreMessage.textContent = "Vous devriez réviser ces concepts fondamentaux.";
+                imageContainer.innerHTML = `<svg class="score-image" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="40" fill="#ef476f" />
+                    <line x1="35" y1="35" x2="65" y2="65" stroke="white" stroke-width="8" />
+                    <line x1="35" y1="65" x2="65" y2="35" stroke="white" stroke-width="8" />
+                </svg>`;
+            }
+            
+            // Générer le détail de la correction
+            const correctionList = document.getElementById("correction-list");
+            correctionList.innerHTML = "";
+            
+            correctionItems.forEach(item => {
+                const container = document.createElement("div");
+                container.className = `correction-item ${item.correct ? 'correct' : 'incorrect'}`;
+                
+                const status = document.createElement("div");
+                status.className = "correction-status";
+                status.textContent = item.correct ? "✓ Correct" : "✗ Incorrect";
+                
+                const question = document.createElement("div");
+                question.className = "correction-question";
+                question.textContent = `Question ${item.question}`;
+                
+                const answer = document.createElement("div");
+                answer.className = "correction-answer";
+                if (item.correct) {
+                    answer.textContent = `Votre réponse est correcte : ${item.userAnswer}`;
+                } else {
+                    answer.innerHTML = `Votre réponse : <strong>${item.userAnswer}</strong><br>Réponse correcte : <strong>${item.correctAnswer}</strong>`;
+                }
+                
+                const explanation = document.createElement("div");
+                explanation.className = "correction-explanation";
+                explanation.textContent = item.explanation;
+                
+                container.appendChild(status);
+                container.appendChild(question);
+                container.appendChild(answer);
+                container.appendChild(explanation);
+                
+                correctionList.appendChild(container);
+                
+                // Mettre en évidence la question dans le formulaire
+                const questionContainer = document.getElementById(`q${item.question}-container`);
+                if (questionContainer) {
+                    questionContainer.classList.remove("highlight-correct", "highlight-incorrect");
+                    questionContainer.classList.add(item.correct ? "highlight-correct" : "highlight-incorrect");
+                }
+            });
+            
+            // Afficher les résultats
+            document.getElementById("results").classList.add("show");
+            
+            // Scroll vers les résultats
+            document.getElementById("results").scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
