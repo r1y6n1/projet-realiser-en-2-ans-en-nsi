@@ -1,0 +1,1949 @@
+#code1 personnage
+
+import random 
+
+from consts import CLASSES
+from utils import verifier_structure, tirageDe, verifier_evenement
+
+class Personnage:
+    """
+    Classe représentant un personnage dans le RPG.
+
+    Attributes:
+        __classe: La classe du personnage (Guerrier, Sorcier, etc.).
+        __nom: Le nom du personnage.
+        __vie: Les points de vie actuels du personnage.
+        __degats_physiques_proches: Les dégâts physiques infligés à courte portée.
+        __degats_physiques_loin: Les dégâts physiques infligés à longue portée.
+        __degats_magiques_loin: Les dégâts magiques infligés à longue portée.
+        __points_soin: Les points de soin disponibles pour guérir.
+        __potion_soin: Le nombre de breuvages de soin disponibles.
+        __points_vie_max: Le maximum de points de vie que le personnage peut avoir.
+        __chance: Le pourcentage de chance pour une action du personnage.
+        __chance_critique: Le pourcentage de chance de réaliser un coup critique.
+        __vitesse_attaque: La vitesse à laquelle le personnage peut attaquer.
+        __description: description du personnage. # ajout pour l'introduction des personnages
+        
+    Methods:
+        __init__(classe, nom, stats): Initialise un personnage avec sa classe, nom et statistiques.
+        get_classe(): Renvoie la classe du personnage.
+        get_nom(): Renvoie le nom du personnage.
+        get_vie(): Renvoie les points de vie actuels du personnage.
+        set_vie(vie): Met à jour les points de vie du personnage.
+        est_vivant(): Vérifie si le personnage est encore en vie.
+        pourcentageVie(): Renvoie le pourcentage de vie actuelle par rapport à la vie maximale.
+        aChance(): Vérifie si le personnage a une chance pour une action.
+        presentation(): Affiche une introduction du personnage.
+        afficher_stats(detailled=False): Affiche les statistiques du personnage.
+        ajoutVie(valeur): Ajoute des points de vie au personnage.
+        retraitVie(valeur): Retire des points de vie au personnage.
+        soin(): Soigne le personnage en fonction de sa chance.
+        attaque(autre_joueur): Simule une attaque contre un autre personnage.
+
+    """
+    def __init__(self, classe, nom, stats, description=""):
+        """
+        Initialise un personnage avec sa classe, nom et statistiques.
+
+        :param classe: La classe du personnage.
+        :type classe: str
+        :param nom: Le nom du personnage.
+        :type nom: str
+        :param stats: Un dictionnaire contenant les statistiques du personnage.
+        :type stats: dict
+        :raises AssertionError: Si la classe ou les statistiques sont invalides.
+        """
+        assert type(classe) == str and classe in CLASSES, 'classe inconnue'
+        assert type(nom) == str, 'doit etre str'
+        assert verifier_structure(stats), 'stats pas valides'
+        self.__classe = classe
+        self.__nom = nom
+        self.__points_vie_max = stats["Max_life_points"]
+        self.__vie = self.__points_vie_max # on demarre avec le max de points de vie
+        self.__degats_physiques_proches = stats["Physical_near_damage"]
+        self.__degats_physiques_loin = stats["Physical_far_damage"]
+        self.__degats_magiques_loin = stats["Magical_far_damage"]
+        self.__points_soin = stats["Heal_points"]
+        self.__potion_soin = stats["Heal_potion"]
+        self.__chance = stats["Luck"]
+        self.__chance_critique = stats["Critical_chance"]
+        self.__vitesse_attaque = stats["Attack_speed"]
+        self.__description = description # ajout pour l'introduction des personnages
+
+-Ce code initialise un personnage en vérifiant ses informations et en stockant ses statistiques et caractéristiques principales comme la classe, le nom, les points de vie et les dégâts.
+
+(stats[“...”] mets au max de points vie,santé et autre)
+
+    
+    def get_classe(self):
+        """
+        Renvoie la classe du personnage.
+        
+        :returns: La classe du personnage.
+        :rtype: str
+        """
+        return self.__classe
+    
+    def get_nom(self):
+        """
+        Renvoie le nom du personnage.
+
+        :returns: Le nom du personnage.
+        :rtype: str
+        """
+        return self.__nom
+
+    def get_vie(self):
+        """
+        Renvoie les points de vie actuels du personnage.
+
+        :returns: Les points de vie actuels du personnage.
+        :rtype: int
+        """
+        return self.__vie
+
+    def get_degats_physiques_proches(self):
+        """
+        Renvoie les dégâts physiques de proximité du personnage.
+
+        :returns: Les dégâts physiques de proximité.
+        :rtype: int
+        """
+        return self.__degats_physiques_proches
+        
+    def get_degats_physiques_loin(self):
+        """
+        Renvoie les dégâts physiques à distance du personnage.
+
+        :returns: Les dégâts physiques à distance.
+        :rtype: int
+        """
+        return self.__degats_physiques_loin
+
+    def get_degats_magiques_loin(self):
+        """
+        Renvoie les dégâts magiques à distance du personnage.
+
+        :returns: Les dégâts magiques à distance.
+        :rtype: int
+        """
+        return self.__degats_magiques_loin
+
+    def get_points_soin(self):
+        """
+        Renvoie les points de soin du personnage.
+
+        :returns: Les points de soin du personnage.
+        :rtype: int
+        """
+        return self.__points_soin
+
+    def get_breuvage_soin(self):
+        """
+        Renvoie le nombre de breuvages de soin du personnage.
+
+        :returns: Le nombre de breuvages de soin du personnage.
+        :rtype: int
+        """
+        return self.__potion_soin
+
+    def get_points_vie_max(self):
+        """
+        Renvoie le nombre de points de vie maximum du personnage.
+
+        :returns: Le nombre de points de vie maximum du personnage.
+        :rtype: int
+        """
+        return self.__points_vie_max
+        
+    def get_chance(self):
+        """
+        Renvoie le pourcentage de chance pour une action du personnage.
+
+        :returns: Le pourcentage de chance pour une action du personnage.
+        :rtype: int
+        """
+        return self.__chance
+
+    def get_chance_critique(self):
+        """
+        Renvoie le pourcentage de chance de réaliser un coup critique du personnage.
+
+        :returns: Le pourcentage de chance de coup critique du personnage.
+        :rtype: int
+        """
+        return self.__chance_critique
+
+    def get_vitesse_attaque(self):
+        """
+        Renvoie la vitesse d'attaque du personnage.
+
+        :returns: La vitesse d'attaque du personnage.
+        :rtype: int
+        """
+        return self.__vitesse_attaque
+
+    def set_vie(self, vie):
+        """
+        Met à jour les points de vie du personnage.
+
+        :param vie: Les nouveaux points de vie du personnage.
+        :type vie: int
+        :raises AssertionError: Si la valeur de vie n'est pas valide.
+        """
+        assert type(vie) == int and vie >= 0 and vie <= self.__points_vie_max, 'valeur vie invlide'
+        self.__vie = vie
+        
+    def est_vivant(self):
+        """
+        Vérifie si le personnage est encore en vie.
+
+        :returns: True si le personnage est vivant, False sinon.
+        :rtype: bool
+        """
+        return self.__vie > 0
+
+    def pourcentageVie(self):
+        """
+        Renvoie le pourcentage de vie actuelle par rapport à la vie maximale.
+
+        :returns: Le pourcentage de vie actuelle.
+        :rtype: float
+        """
+        return (self.__vie * 100)/self.__points_vie_max
+
+    def aChance(self):
+        """
+        Vérifie si le personnage a une chance pour une action.
+
+        :returns: True si le personnage a une chance, False sinon.
+        :rtype: bool
+        """
+        de = tirageDe()
+        return de <= self.__chance
+
+    def presentation(self): 
+        """
+        Renvoie l’introduction narrative du personnage.
+    
+        :return: dialogue de présentation
+        :rtype: str
+        """
+        # on a du ajouter l' attribut __description a l'init (comme dans LieuRPG)
+        return self.__description
+
+        
+    def afficher_stats(self, detailled=False):
+        """
+        Affiche les statistiques du personnage.
+
+        :param detailled: Active ou désactive l'affichage détaillé, defaults to False.
+        :type detailled: bool, optional
+        """
+        assert type(detailled) == bool , 'type booleen attendu'
+        if detailled == False:
+            print (f"vie: {self.__vie}pts ({self.pourcentageVie():.2f}%), soin: {self.__points_soin}pts, chance: {self.__chance}")
+        else:
+            print(f"vie: {self.__vie}pts ({self.pourcentageVie():.2f}%))")
+            print(f"classe: {self.__classe}")
+            print(f"nom: {self.__nom}")
+            print(f"pts vie max: {self.__points_vie_max}")
+            print(f"degats physiques proches: {self.__degats_physiques_proches}")
+            print(f"degats physiques loin: {self.__degats_physiques_loin}")
+            print(f"degats magiques loin: {self.__degats_magiques_loin}")
+            print(f"points soin: {self.__points_soin}")
+            print(f"potion soin: {self.__potion_soin}")
+            print(f"chance: {self.__chance}")
+            print(f"chance critique: {self.__chance_critique}")
+            print(f"vitesse attaque: {self.__vitesse_attaque}")
+
+    def ajoutVie(self, valeur):
+        """
+        Ajoute des points de vie au personnage.
+
+        :param valeur: La valeur à ajouter.
+        :type valeur: int
+        :raises AssertionError: Si la valeur n'est pas un nombre positif.
+        """
+        assert type(valeur) == int and valeur >= 0, 'valeur vie invlide'
+        if self.__vie + valeur > self.__points_vie_max:
+            self.__vie = self.__points_vie_max
+        else:
+            self.__vie += valeur
+
+    def retraitVie(self, valeur):
+        """
+        Retire des points de vie au personnage.
+
+        :param valeur: La valeur à retirer.
+        :type valeur: int
+        :raises AssertionError: Si la valeur n'est pas un nombre positif.
+        """
+        assert type(valeur) == int and valeur >= 0, 'valeur vie invlide'
+        if self.__vie - valeur < 0:
+            self.__vie = 0
+        else:
+            self.__vie -= valeur
+            
+    def soin(self, coef_lieu=1.0): # ajout du coef de lieu
+        """
+        Tente de soigner le personnage.
+        
+        Le soin utilise une potion spécifique à la classe du personnage.
+        L'action peut échouer en fonction de la chance.
+        
+        Cette méthode ne gère aucun affichage.
+        Elle retourne uniquement un résultat structuré décrivant l'action.
+        
+        :return: succès, données de soin
+        :rtype: tuple[bool, dict]
+        
+        Structure du dictionnaire retourné :
+        {
+            "type": "attack" | "heal" | "death" | "text" | "end",
+            "source": Personnage | None,
+            "target": Personnage | None,
+            "success": bool,
+            "value": int,
+            "damage_type": str | None,
+            "potion": str | None,
+            "message": str | None
+        }
+        """
+        assert type(coef_lieu) == float, "le coef_lieu doit etre un float"
+        
+        succes = self.aChance()
+        points = 0
+        potion = None
+        
+        if succes and self.__vie < self.__points_vie_max: # pas vie au max
+            points = int(self.__points_soin * coef_lieu) # on multiplie par le coef de lieu mais on veut un int
+            potion = self.get_breuvage_soin()
+            vie_avant = self.__vie
+            self.ajoutVie(points)
+            vie_apres = self.__vie
+            points = vie_apres - vie_avant
+    
+        event = {
+            "type": "heal",
+            "source": self,
+            "target": self,
+            "success": succes,
+            "value": points,
+            "damage_type": None,
+            "potion": potion,
+            "message": None,
+        }
+        
+        verifier_evenement(event, expected_type="heal")
+        return (succes, event)
+
+    
+    def _calculer_degats(self):
+        """
+        Calcule les dégâts infligés et renvoie (degats, damage_type).
+    
+        :return: (degats, damage_type)
+        :rtype: tuple[int, str]
+        """
+        # valeurs candidates (degats, type)
+        candidats = [
+            (self.__degats_physiques_proches, "physique_proche"),
+            (self.__degats_physiques_loin, "physique_loin"),
+            (self.__degats_magiques_loin, "magique_loin"),
+        ]
+    
+        # on garde uniquement les dégâts strictement positifs
+        candidats = [c for c in candidats if c[0] > 0]
+        assert len(candidats) >= 1, "Le personnage doit avoir au moins un type de dégât > 0"
+    
+        degats, damage_type = random.choice(candidats)
+    
+        # critique éventuel x1.5
+        assert isinstance(self.__chance_critique, int)
+        if random.randint(1, 100) <= self.__chance_critique:
+            degats = int(degats * 1.5)
+    
+        assert isinstance(degats, int) and degats >= 0
+        assert isinstance(damage_type, str)
+        return (degats, damage_type)
+
+    def attaque(self, autre_joueur):
+        """
+        Tente une attaque contre un autre personnage.
+         
+        L'attaque peut infliger différents types de dégâts :
+        - physique au corps à corps
+        - physique à distance
+        - magique à distance
+         
+        Cette méthode ne gère aucun affichage.
+        Elle retourne uniquement un résultat structuré décrivant l'action.
+         
+        :param autre_joueur: cible de l'attaque
+        :type autre_joueur: Personnage
+        :return: événement d'attaque normalisé
+        :rtype: dict
+         
+        Structure du dictionnaire retourné :
+        {
+            "action": "attack",
+            "source": Personnage,
+            "target": Personnage,
+            "success": bool,
+            "value": int,                # dégâts infligés (0 si échec)
+            "damage_type": str           # "physique_proche" | "physique_distance" | "magique_distance"
+        }
+        """
+        assert isinstance(autre_joueur, Personnage)
+        assert autre_joueur is not self
+        
+
+        succes = self.aChance()
+        degats = 0
+        damage_type = None
+    
+        if succes:
+            degats, damage_type = self._calculer_degats()
+            vie_avant = autre_joueur.get_vie()
+            autre_joueur.retraitVie(degats)
+            vie_apres = autre_joueur.get_vie()
+            degats = vie_avant - vie_apres
+    
+        event = {
+            "type": "attack",
+            "source": self,
+            "target": autre_joueur,
+            "success": succes,
+            "value": degats,
+            "damage_type": damage_type,
+            "potion": None,
+            "message": None,
+        }
+    
+        verifier_evenement(event, expected_type="attack")
+        return event
+
+
+
+# ============================================================
+# TESTS
+# ============================================================
+def tester_methodes_personnage():
+    from consts import STATS_GUERRIER, STATS_NAIN
+    stats_guerrier = STATS_GUERRIER
+    guerrier = Personnage("Guerrier", "Test", stats_guerrier)
+
+    print("--- Stats du guerrier (debug) ---")
+    guerrier.afficher_stats(detailled=True)
+
+    print("\n--- Réduction de vie du guerrier ---")
+    guerrier.retraitVie(50)
+    guerrier.afficher_stats(detailled=True)
+
+    print("\n--- Ajout de vie du guerrier ---")
+    guerrier.ajoutVie(20)
+    guerrier.afficher_stats(detailled=True)
+    print(f"guerrier est vivant: {guerrier.est_vivant()}")
+    
+    print("\n--- Ajout excessive de vie  du guerrier ---")
+    guerrier.ajoutVie(200)
+    guerrier.afficher_stats(detailled=True)
+    
+    print("\n--- Réduction excessive de vie du guerrier ---")
+    guerrier.retraitVie(500)
+    guerrier.afficher_stats(detailled=True)
+    print(f"le guerrier est vivant: {guerrier.est_vivant()}")
+    
+    mauvaise_stats = {
+        "Physical_near_damage": 10, 
+        "Physical_far_damage": 50,
+        "Magical_far_damage": 0,
+        "Heal_points": 5,
+        "Heal_potion": "Bière",
+        "Max_life_points": 130,
+        "Luck": -5, # mauvaise valeur
+        "Critical_chance": 40,
+        "Attack_speed": 5,
+        }
+        
+    print("\n--- test mauvaise valeur de stat ---")
+    try: # seule facon de tester des assert...
+        nain = Personnage("Nain", "Gimli", mauvaise_stats)
+        assert False, "echec test valeur invalides"
+    except:
+        print("test reussi")
+    
+    print("\n--- Comportement de la chance ---")
+    nb_essais = 1000
+    compteur = 0
+    for c in range(nb_essais):
+        if guerrier.aChance():
+            compteur += 1
+    print(f"chance du guerrier: {guerrier.get_chance()}, chance observee: {compteur} sur {nb_essais} ({compteur/nb_essais*100:.2f}%)")
+    
+
+    print("\n--- Attaque du guerrier ---")
+    ennemi = Personnage("Nain", "Gimli", STATS_NAIN)
+
+    ennemi.afficher_stats(detailled=True)
+    
+    vie_avant = ennemi.get_vie()
+    event = guerrier.attaque(ennemi)
+    vie_apres = ennemi.get_vie()
+    
+    assert vie_avant - vie_apres == event["value"]
+    assert event["type"] == "attack"
+    assert event["source"] is guerrier
+    assert event["target"] is ennemi
+    assert isinstance(event["success"], bool)
+    assert isinstance(event["value"], int)
+    assert event["value"] >= 0
+    print(event)
+    verifier_evenement(event, expected_type="attack")
+
+    print("\n--- Soin du guerrier ---")
+
+    vie_avant = guerrier.get_vie()
+    (succes, event) = guerrier.soin()
+    vie_apres = guerrier.get_vie()
+
+    assert vie_apres - vie_avant == event["value"]
+    assert event["type"] == "heal"
+    assert event["source"] is guerrier
+    assert event["target"] is guerrier
+    assert isinstance(event["success"], bool)
+    assert isinstance(event["value"], int)
+    assert event["value"] >= 0
+    print(event)
+    verifier_evenement(event, expected_type="heal")
+
+    print("\n--- Soin du guerrier avec coef de lieu---")
+    
+    vie_avant = guerrier.get_vie()
+    (succes, event) = guerrier.soin(coef_lieu=2.0)
+    vie_apres = guerrier.get_vie()
+    
+    assert vie_apres - vie_avant == event["value"]
+    assert event["type"] == "heal"
+    assert event["source"] is guerrier
+    assert event["target"] is guerrier
+    assert isinstance(event["success"], bool)
+    assert isinstance(event["value"], int)
+    assert event["value"] >= 0
+    print(event)
+    verifier_evenement(event, expected_type="heal")
+
+if __name__ == "__main__":
+    # Tester les méthodes de la classe Personnage
+    tester_methodes_personnage()
+
+-------------------------------------------------------------------------------------------------------------------------
+
+#code2 histoire
+
+Description
+-----------
+Gestion du déroulement narratif et du combat.
+
+La classe :class:`Histoire` orchestre le scénario sous forme d'événements
+normalisés (moteur événementiel). Elle ne gère ni l'affichage (GUI),
+ni la mise en forme du texte (narration), uniquement la logique de déroulement.
+
+Contrat d'événement (socle)
+---------------------------
+Tout événement renvoyé par :meth:`Histoire.next_step` respecte a minima :
+
+- ``type``: ``str`` ("text", "attack", "heal", "death", "end")
+- ``source``: ``Personnage | None``
+- ``target``: ``Personnage | None``
+- ``success``: ``bool``
+- ``value``: ``int`` (>= 0)
+- ``damage_type``: ``str | None`` (attaque)
+- ``potion``: ``str | None`` (soin)
+- ``message``: ``str | None`` (texte neutre)
+
+Extensions (acceptées)
+----------------------
+Selon le type, :class:`Histoire` peut *ajouter* des champs optionnels
+sans casser le contrat (ex: ``dialogue``, ``coef``, ``full_life``).
+"""
+
+import random
+from factory import creer_equipes
+from utils import verifier_evenement
+from consts import HEAL_LIFE_THRESHOLD, HEAL_ATTEMPT_PROBABILITY
+from typing import Optional, Dict, Any
+from narration import Narration
+from personnage import Personnage
+from lieu import LieuRPG
+
+
+class Histoire:
+    """
+    Classe orchestrant le déroulement narratif et les combats du RPG.
+
+    La classe Histoire joue le rôle de moteur événementiel :
+    elle coordonne les personnages, le lieu et les phases du récit,
+    et produit des événements normalisés consommables par
+    une interface texte ou graphique.
+
+    Elle ne gère aucun affichage et ne dépend d’aucune interface graphique.
+
+    Attributes:
+        personnages (list[Personnage]):
+            Liste des personnages participant à l’histoire.
+        lieu (LieuRPG):
+            Lieu dans lequel se déroule le récit.
+        groupe1 (list[Personnage]):
+            Premier groupe de combat.
+        groupe2 (list[Personnage]):
+            Second groupe de combat.
+        phase (str):
+            Phase actuelle du scénario
+            ("intro", "groupes", "combat", "fin", "done").
+        idx_perso (int):
+            Index utilisé pour l’introduction progressive des personnages.
+        _combat_pairs (list[tuple[Personnage, Personnage]]):
+            Liste des paires potentielles d’affrontement.
+        _pair_i (int):
+            Index de la paire de combat courante.
+        _prepared_groups (bool):
+            Indique si les groupes ont été initialisés.
+        _mort_recente (bool):
+            Indique si une mort vient de se produire
+            (permet une réorganisation des combats).
+        _g1i (int):
+            Index d’annonce des personnages du groupe 1.
+        _g2i (int):
+            Index d’annonce des personnages du groupe 2.
+        narration (Narration):
+            objet narration
+
+    Methods:
+        __init__(personnages, lieu):
+            Initialise l’histoire avec les personnages et le lieu.
+        getPersonnages():
+            Renvoie la liste des personnages de l’histoire.
+        getGroupe1():
+            Renvoie la liste des personnages du groupe 1.
+        getGroupe2():
+            Renvoie la liste des personnages du groupe 2.
+        next_step():
+            Avance le scénario d’une étape et renvoie un événement normalisé.
+        run_textuel(narration):
+            Exécute l’histoire en mode texte (debug / démonstration).
+
+    Event system:
+        La méthode next_step() renvoie des événements sous forme de dictionnaires
+        respectant un contrat strict, validé par utils.verifier_evenement().
+
+        Types d’événements possibles :
+            - "text"   : narration ou description
+            - "attack" : attaque entre deux personnages
+            - "heal"   : tentative de soin
+            - "death"  : mort d’un personnage
+            - "end"    : fin du combat et annonce du vainqueur
+
+    Design choices:
+        - Séparation stricte logique / affichage
+        - Architecture événementielle
+        - Compatible interface texte et GUI
+        - Pensée pour être testable et pédagogique (Terminale NSI)
+    """
+    def __init__(self, personnages, lieu):
+        """
+        Initialise l'histoire.
+
+        :param personnages: personnages du récit
+        :type personnages: list
+        :param lieu: lieu du récit
+        :type lieu: LieuRPG
+        """
+        assert isinstance(personnages, list)
+        assert len(personnages) >= 2
+        for p in personnages:
+            assert isinstance(p, Personnage)
+        assert isinstance(lieu, LieuRPG)
+        
+        self.personnages = personnages
+        self.lieu = lieu
+        self.groupe1 = None
+        self.groupe2 = None
+        
+        self.phase = "intro"
+        self.idx_perso = 0
+
+        self._combat_pairs = []
+        self._pair_i = 0
+        self._prepared_groups = False
+        self._mort_recente = False
+        
+        self._g1i = 0
+        self._g2i = 0
+        
+        self.narration = Narration(color=False)
+        
+    # ========================================================
+    # GETTERS
+    # ========================================================
+        
+    def getPersonnages(self):
+        """
+        Retourne une copie de la liste des personnages de l'histoire.
+    
+        :return: liste des personnages
+        :rtype: list<Personnage>
+        """
+        return self.personnages.copy()
+
+
+    def getGroupe1(self):
+        """
+        Retourne une copie du premier groupe de personnages.
+    
+        :return: liste des personnages du groupe 1
+        :rtype: list<Personnage>
+        """
+        return self.groupe1.copy()
+    
+    
+    def getGroupe2(self):
+        """
+        Retourne une copie du second groupe de personnages.
+    
+        :return: liste des personnages du groupe 2
+        :rtype: list<Personnage>
+        """
+        return self.groupe2.copy()
+
+
+    # ========================================================
+    # OUTILS INTERNES
+    # ========================================================
+    
+    @staticmethod
+    def _event_base(etype: str, source, target, success: bool, value: int, message: Optional[str] = None, damage_type: Optional[str] = None, potion: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Construit un événement conforme au contrat (socle).
+
+        :param etype: type d'événement
+        :type etype: str
+        :param source: acteur de l'action
+        :type source: Personnage | None
+        :param target: cible de l'action
+        :type target: Personnage | None
+        :param success: succès de l'action
+        :type success: bool
+        :param value: valeur (dégâts / soins), >= 0
+        :type value: int
+        :param message: message neutre (optionnel)
+        :type message: str | None
+        :param damage_type: type de dégâts (attaque)
+        :type damage_type: str | None
+        :param potion: potion/breuvage (soin)
+        :type potion: str | None
+        :return: événement conforme au contrat
+        :rtype: dict
+        """
+        assert isinstance(etype, str) and etype != ""
+        assert isinstance(success, bool)
+        assert isinstance(value, int) and value >= 0
+        assert damage_type is None or isinstance(damage_type, str)
+        assert potion is None or isinstance(potion, str)
+        assert message is None or isinstance(message, str)
+
+        return {
+            "type": etype,
+            "source": source,
+            "target": target,
+            "success": success,
+            "value": value,
+            "damage_type": damage_type,
+            "potion": potion,
+            "message": message,
+        }
+
+    def _prepare_groups(self):
+        """
+        Prépare les groupes de combat.
+         
+        Sépare les personnages en deux groupes adverses
+        et génère les paires de combats possibles.
+         
+        Initialise également l'ordre des affrontements.
+        """
+        
+        # on ne fait des groupes qu'avec les personnages vivants
+        personnages_vivants = []
+        for p in self.personnages:
+            if p.est_vivant():
+                personnages_vivants.append(p)
+        self.groupe1, self.groupe2 = creer_equipes(personnages_vivants)
+
+        # index de parcours des groupes
+        self._g1i = 0
+        self._g2i = 0
+    
+        # paires de combat
+        self._combat_pairs = []
+        for p1 in self.personnages:
+            adversaires = self.groupe2 if p1 in self.groupe1 else self.groupe1
+            for p2 in adversaires:
+                if p1 != p2:
+                    self._combat_pairs.append((p1, p2))
+    
+        random.shuffle(self._combat_pairs)
+    
+        self._pair_i = 0
+        self._prepared_groups = True
+
+    def _combat_continue(self):
+        """
+        Indique si le combat peut continuer.
+    
+       :return: True si les deux groupes ont au moins un survivant
+       :rtype: bool
+       """
+        g1 = False
+        for p in self.groupe1:
+            if p.est_vivant():
+                g1 = True
+                
+        g2 = False
+        for p in self.groupe2:
+            if p.est_vivant():
+                g2 = True
+               
+        return (g1 == True) and (g2 == True)
+               
+           
+
+    # ========================================================
+    # MOTEUR NARRATIF
+    # ========================================================
+
+    def next_step(self):
+        """
+        Avance l'histoire d'une étape.
+
+        :return: événement narratif ou None
+        :rtype: dict | None
+        
+        Structure d’un événement :
+
+        event = {
+            "type": "text" | "attack" | "heal" | "death" | "end",
+            "source": Personnage | None,      # acteur de l’action
+            "target": Personnage | None,      # cible de l’action
+            "value": int | None,              # dégâts ou soins effectifs
+            "success": bool | None,           # succès de l’action
+            "message": str | None,            # texte narratif neutre
+            "dialogue": str | None,
+        
+            # champs optionnels selon le type
+            "damage_type": str | None,        # attaque : type de dégâts
+            "potion": str | None,             # soin : breuvage utilisé
+            "full_life": bool | None,         # soin inutile (PV max)
+            "coef": float | None              # coefficient du lieu
+        }
+        Le moteur (Histoire) produit les événements.
+        Les vues (texte / graphique) les consomment sans logique métier.
+        """
+        # =========================================================
+        # INTRO
+        # =========================================================
+        if self.phase == "intro":
+            self.phase = "intro_persos"
+            event = self._event_base(
+                "text",
+                source=None,
+                target=None,
+                success=True,
+                value=0,
+                message="L'histoire commence…",
+            )
+            verifier_evenement(event, expected_type="text")
+            return event
+
+        if self.phase == "intro_persos":
+            if self.idx_perso < len(self.personnages):
+                p = self.personnages[self.idx_perso]
+                self.idx_perso += 1
+                event = self._event_base(
+                    "text",
+                    source=p,
+                    target=None,
+                    success=True,
+                    value=0,
+                    message=f"{p.get_classe()} — {p.get_nom()}: {p.presentation()}", # ajout de la description du personnage
+                )
+                verifier_evenement(event, expected_type="text")
+                return event
+
+            self.phase = "lieu"
+            event = self._event_base(
+                "text",
+                source=None,
+                target=None,
+                success=True,
+                value=0,
+                message="Le décor se met en place…",
+            )
+            verifier_evenement(event, expected_type="text")
+            return event
+
+        # =========================================================
+        # LIEU + MISE EN SCENE
+        # =========================================================
+        if self.phase == "lieu":
+            self.phase = "mise_en_scene"
+            event = self._event_base(
+                "text",
+                source=None,
+                target=None,
+                success=True,
+                value=0,
+                message=f"Les événements se déroulent à {self.lieu.get_nom()}.",
+            )
+            verifier_evenement(event, expected_type="text")
+            return event
+
+        if self.phase == "mise_en_scene":
+            self.phase = "tension"
+            event = self._event_base(
+                "text",
+                source=None,
+                target=None,
+                success=True,
+                value=0,
+                message=self.lieu.get_description(),
+            )
+            verifier_evenement(event, expected_type="text")
+            return event
+
+        if self.phase == "tension":
+            self.phase = "groupes"
+            event = self._event_base(
+                "text",
+                source=None,
+                target=None,
+                success=True,
+                value=0,
+                message="Une dispute éclate. Les groupes se forment.",
+            )
+            verifier_evenement(event, expected_type="text")
+            return event
+
+        # =========================================================
+        # GROUPES (annonce progressive)
+        # =========================================================
+        if self.phase == "groupes":
+            if not self._prepared_groups:
+                self._prepare_groups()
+                event = self._event_base(
+                    "text",
+                    source=None,
+                    target=None,
+                    success=True,
+                    value=0,
+                    message="Deux camps distincts émergent.",
+                )
+                verifier_evenement(event, expected_type="text")
+                return event
+
+            if self._g1i < len(self.groupe1):
+                p = self.groupe1[self._g1i]
+                self._g1i += 1
+                event = self._event_base(
+                    "text",
+                    source=p,
+                    target=None,
+                    success=True,
+                    value=0,
+                    message=f"{p.get_nom()} rejoint le groupe 1.",
+                )
+                verifier_evenement(event, expected_type="text")
+                return event
+
+            if self._g2i < len(self.groupe2):
+                p = self.groupe2[self._g2i]
+                self._g2i += 1
+                event = self._event_base(
+                    "text",
+                    source=p,
+                    target=None,
+                    success=True,
+                    value=0,
+                    message=f"{p.get_nom()} rejoint le groupe 2.",
+                )
+                verifier_evenement(event, expected_type="text")
+                return event
+
+            self.phase = "combat"
+            event = self._event_base(
+                "text",
+                source=None,
+                target=None,
+                success=True,
+                value=0,
+                message="Le combat commence.",
+            )
+            verifier_evenement(event, expected_type="text")
+            return event
+
+        # =========================================================
+        # COMBAT
+        # =========================================================
+        if self.phase == "combat":
+
+            if not self._combat_continue():
+                self.phase = "fin"
+                event = self._event_base(
+                    "text",
+                    source=None,
+                    target=None,
+                    success=True,
+                    value=0,
+                    message="",
+                )
+                verifier_evenement(event, expected_type="text")
+                return event
+
+            if self._mort_recente:
+                self._prepare_groups()
+                self._mort_recente = False
+                event = self._event_base(
+                    "text",
+                    source=None,
+                    target=None,
+                    success=True,
+                    value=0,
+                    message="La mêlée se réorganise, les adversaires changent.",
+                )
+                verifier_evenement(event, expected_type="text")
+                return event
+
+            if self._pair_i >= len(self._combat_pairs):
+                self._prepare_groups()
+                return self.next_step()
+
+            acteur, cible = self._combat_pairs[self._pair_i]
+            self._pair_i += 1
+
+            if not (acteur.est_vivant() and cible.est_vivant()):
+                return self.next_step()
+
+            opposants = (
+                (acteur in self.groupe1 and cible in self.groupe2)
+                or (acteur in self.groupe2 and cible in self.groupe1)
+            )
+            if not opposants:
+                return self.next_step()
+
+            # ---------- SOIN ----------
+            if (
+                acteur.get_vie() < HEAL_LIFE_THRESHOLD * acteur.get_points_vie_max()
+                and random.random() < HEAL_ATTEMPT_PROBABILITY
+            ):
+                coef_lieu = self.lieu.get_heal_modifier(acteur.get_classe()) # on utlise le coef de lieu dans la methode soin
+                (succes, event) = acteur.soin(coef_lieu)  # attention soin retourne un tuple et pas juste un event !!
+
+                # extensions
+                event["full_life"] = acteur.get_vie() == acteur.get_points_vie_max()
+                event["coef"] = coef_lieu
+                event["dialogue"] = (
+                    self.narration.heal_success(acteur.get_classe())
+                    if event["success"] and event["value"] > 0
+                    else self.narration.heal_failure(acteur.get_classe())
+                )
+
+                # message factuel (pour suivi élève)
+                if event["success"]:
+                    event["message"] = (
+                        f"{acteur.get_nom()} se soigne et récupère {event['value']} PV."
+                    )
+                else:
+                    event["message"] = (
+                        f"{acteur.get_nom()} tente de se soigner mais échoue."
+                    )
+    
+                verifier_evenement(event, expected_type="heal")
+                return event
+
+            # ---------- ATTAQUE ----------
+            event = acteur.attaque(cible)
+
+            # message factuel
+            if event["success"]:
+                event["message"] = (
+                    f"{acteur.get_nom()} attaque {cible.get_nom()} "
+                    f"et inflige {event['value']} dégâts ({event['damage_type']})."
+                )
+            else:
+                event["message"] = (
+                    f"{acteur.get_nom()} attaque {cible.get_nom()} mais échoue."
+                )
+
+            # extensions
+            event["coef"] = self.lieu.get_attack_modifier(acteur.get_classe())
+            event["dialogue"] = self.narration.attack_success(acteur.get_classe(), cible.get_classe()) if event["success"] else self.narration.attack_failure(acteur.get_classe(), cible.get_classe())
+
+            verifier_evenement(event, expected_type="attack")
+
+            if not cible.est_vivant():
+                self._mort_recente = True
+                death = self._event_base(
+                    "death",
+                    source=acteur,
+                    target=cible,
+                    success=True,
+                    value=0,
+                    message=f"{cible.get_nom()} tombe au sol. La foule s'agite.",
+                )
+                verifier_evenement(death, expected_type="death")
+                return death
+
+            return event
+
+        # =========================================================
+        # FIN
+        # =========================================================
+        if self.phase == "fin":
+            self.phase = "done"
+            gagnant = (
+                "Le groupe 1 sort vainqueur."
+                if any(p.est_vivant() for p in self.groupe1)
+                else "Le groupe 2 sort vainqueur."
+            )
+            event = self._event_base(
+                "end",
+                source=None,
+                target=None,
+                success=True,
+                value=0,
+                message=gagnant,
+            )
+            verifier_evenement(event, expected_type="end")
+            return event
+
+        # =========================================================
+        # TERMINE
+        # =========================================================
+        return None
+
+    # ========================================================
+    # RUNNER TEXTE (POUR TESTS)
+    # ========================================================
+
+    def run_textuel(self, narration):
+        """
+        Exécute l'histoire en mode texte en consommant les événements produits
+        par la méthode next_step().
+    
+        Cette méthode illustre le fonctionnement du moteur événementiel :
+        elle récupère successivement des événements normalisés et les interprète
+        pour produire une narration textuelle.
+    
+        Aucun affichage graphique n’est effectué ici.
+    
+        :param narration: objet responsable de la génération de dialogues
+        :type narration: Narration
+        """
+        event = self.next_step()
+    
+        while event is not None and event.get("type") != "end":
+            verifier_evenement(event)
+            etype = event["type"]
+    
+            # --- MESSAGE FACTUEL (toujours affiché s'il existe) ---
+            msg = event.get("message")
+            if isinstance(msg, str):
+                print(msg)
+    
+            # --- DIALOGUES OPTIONNELS (Narration) ---
+            if etype == "attack":
+                src = event["source"]
+                tgt = event["target"]
+                dmg = event["value"]
+    
+                if src and tgt:
+                    if dmg > 0:
+                        print(src.get_nom()+': "',
+                            narration.attack_success(
+                                src.get_classe(),
+                                tgt.get_classe()
+                            )+'"'
+                        )
+                    else:
+                        print(src.get_nom()+': "',
+                            narration.attack_failure(
+                                src.get_classe(),
+                                tgt.get_classe()
+                            )+'"'
+                        )
+    
+            elif etype == "heal":
+                src = event["source"]
+                pts = event["value"]
+    
+                if src:
+                    if pts > 0:
+                        print(src.get_nom()+': "',
+                            narration.heal_success(
+                                src.get_classe()
+                            )+'"'
+                        )
+                    else:
+                        print(src.get_nom()+': "',
+                            narration.heal_failure(
+                                src.get_classe()
+                            )+'"'
+                        )
+    
+            event = self.next_step()
+    
+        # --- fin explicite ---
+        if event is not None:
+            verifier_evenement(event, expected_type="end")
+            msg = event.get("message")
+            if isinstance(msg, str):
+                print(msg)
+
+
+
+# ============================================================
+# TEST MANUEL
+# ============================================================
+if __name__ == "__main__":
+    from factory import creer_personnages, creer_lieu
+
+    histoire = Histoire(
+        creer_personnages(),
+        creer_lieu("Taverne")
+    )
+
+    narration = Narration(color=True)
+    histoire.run_textuel(narration)
+
+------------------------------------------------------------------------------------------------------------------------
+#code3 factory
+
+Description
+-----------
+Fonctions utilitaires du projet RPG POO.
+
+Ce module regroupe des outils génériques utilisés par plusieurs parties
+du programme, sans logique métier propre :
+
+- tirages aléatoires simples
+- vérifications de structures de données
+- fonctions d'aide indépendantes des classes principales
+""" 
+
+import random
+
+def tirageDe():
+    """
+        Simule le lancer de dé en retournant un entier aléatoire entre 0 et 100.
+
+        :returns: Entier aléatoire entre 1 et 100.
+        :rtype: int
+    """
+    return random.randint(1, 100) #ne doit pas etre 0
+
+def verifier_structure(stats):
+    """
+        Vérifie la structure des statistiques d'un personnage.
+
+        :param stats: Dictionnaire contenant les statistiques du personnage.
+        :type stats: object
+        :return: True si la structure est conforme, False sinon.
+        :rtype: bool
+    """
+    if not isinstance(stats, dict):
+        return False
+    
+    # clés obligatoires
+    required_keys = {
+        "Physical_near_damage",
+        "Physical_far_damage",
+        "Magical_far_damage",
+        "Heal_points",
+        "Heal_potion",
+        "Max_life_points",
+        "Luck",
+        "Critical_chance",
+        "Attack_speed",
+    }
+
+    if not required_keys.issubset(stats.keys()):
+        return False
+    
+    #verif types stats
+    if not (type(stats["Physical_near_damage"]) == int and stats["Physical_near_damage"] >= 0):
+        return False
+    if not (type(stats["Physical_far_damage"]) == int and stats["Physical_far_damage"] >= 0):
+        return False
+    if not (type(stats["Magical_far_damage"]) == int and stats["Magical_far_damage"] >= 0):
+        return False
+    if not (type(stats["Heal_points"]) == int and stats["Heal_points"] >= 0):
+        return False
+    if not (type(stats["Heal_potion"]) == str):
+        return False
+    if not (type(stats["Max_life_points"]) == int and stats["Max_life_points"] > 0):
+        return False
+    if not (type(stats["Luck"]) == int and stats["Luck"] >=0 and stats["Luck"] <= 100):
+        return False
+    if not (type(stats["Critical_chance"]) == int and stats["Critical_chance"] >= 0 and stats["Critical_chance"] <= 100):
+        return False
+    if not (type(stats["Attack_speed"]) == int and stats["Attack_speed"] >= 0):
+        return False
+    return True
+    
+
+def verifier_evenement(event, expected_type=None):
+    """
+    Vérifie qu'un événement respecte le contrat attendu du moteur RPG.
+
+    :param event: événement à vérifier
+    :type event: dict
+    :param expected_type: type d'événement attendu ("attack", "heal", etc.)
+    :type expected_type: str | None
+    :raises AssertionError: si l'événement est invalide
+    """
+    assert isinstance(event, dict)
+
+    # clés obligatoires
+    required_keys = {
+        "type",
+        "source",
+        "target",
+        "success",
+        "value",
+        "damage_type",
+        "potion",
+        "message",
+    }
+
+    assert required_keys.issubset(event.keys())
+
+    # type d'événement
+    assert isinstance(event["type"], str)
+    if expected_type is not None:
+        assert event["type"] == expected_type
+
+    # succès / valeur
+    assert isinstance(event["success"], bool)
+    assert isinstance(event["value"], int)
+    assert event["value"] >= 0
+
+    # champs optionnels typés
+    assert event["damage_type"] is None or isinstance(event["damage_type"], str)
+    assert event["potion"] is None or isinstance(event["potion"], str)
+    assert event["message"] is None or isinstance(event["message"], str)
+
+# ============================================================
+# TESTS
+# ============================================================
+if __name__ == "__main__":
+
+    print("=== TEST tirageDe ===")
+    for i in range(15):
+        res = tirageDe()
+        print(f"TirageDe a rendu {res}")
+        assert type(res) == int and res >= 0 and res <= 100, 'tirageDe erreur'
+        
+    print("→ tirageDe OK\n")
+    print("-" * 50 + "\n")
+
+    print("=== TEST verifier_structure ===")
+    from consts import CLASSES_DATA
+    for classe in CLASSES_DATA:
+        print(f"verif structure de {classe}")
+        assert verifier_structure(CLASSES_DATA[classe])
+        
+    mauvaise_clef = {
+        "PHYSICAL_NEAR_DAMAGE": 10, # mauvais nom de clef
+        "Physical_far_damage": 50,
+        "Magical_far_damage": 0,
+        "Heal_points": 5,
+        "Heal_potion": "Bière",
+        "Max_life_points": 130,
+        "Luck": 45,
+        "Critical_chance": 40,
+        "Attack_speed": 5,
+    }
+    
+    print("test verif structure avec mauvaise clef")
+    assert not verifier_structure(mauvaise_clef)
+    
+    mauvais_type = {
+        "Physical_near_damage": 10, 
+        "Physical_far_damage": 50,
+        "Magical_far_damage": 0,
+        "Heal_points": 5,
+        "Heal_potion": "Bière",
+        "Max_life_points": 130,
+        "Luck": "tres bonne", # mauvais type
+        "Critical_chance": 40,
+        "Attack_speed": 5,
+    }
+    
+    print("test verif structure avec mauvais type")
+    assert not verifier_structure(mauvais_type)
+    
+    mauvaise_valeur = {
+        "Physical_near_damage": 10, 
+        "Physical_far_damage": 50,
+        "Magical_far_damage": 0,
+        "Heal_points": 5,
+        "Heal_potion": "Bière",
+        "Max_life_points": 130,
+        "Luck": -5, # mauvaise valeur
+        "Critical_chance": 40,
+        "Attack_speed": 5,
+    }
+    
+    print("test verif structure avec mauvaise valeur")
+    assert not verifier_structure(mauvaise_valeur)
+
+    print("\n Tests utils OK")
+    
+    
+    
+--------------------------------------------------------------------------------------------------------------------------
+#code4 utils
+
+Description
+-----------
+Classe représentant un lieu du RPG.
+
+Un lieu :
+- possède un type, un nom et une description narrative
+- influence le combat via des modificateurs d’attaque et de soin
+- ne contient aucune logique de combat ou de narration
+"""
+
+from consts import MODIFICATEURS_LIEUX, LIEUX, CLASSES
+
+
+class LieuRPG:
+    """
+    Représente un lieu du jeu.
+
+    Attributs
+    ----------
+    _type_lieu : str
+        Type du lieu (Taverne, Desert, Caverne)
+    _nom : str
+        Nom du lieu
+    _description : str
+        Description narrative du lieu
+    """
+
+    def __init__(self, type_lieu, nom, description):
+        """
+        Initialise un lieu.
+
+        :param type_lieu: type du lieu
+        :type type_lieu: str
+        :param nom: nom du lieu
+        :type nom: str
+        :param description: description narrative
+        :type description: str
+        """
+        assert type(type_lieu) == str and type_lieu in LIEUX, 'lieu inconnu'
+        assert type(nom) == str, 'doit etre str'
+        # bizarre : les descriptions dans messages sont sous forme de tuples...?
+        for s in description:
+            assert type(s) == str, "doit etre du texte"
+        self._description = "".join(description)
+        self._type_lieu = type_lieu
+        self._nom = nom
+        self.modificateurs = MODIFICATEURS_LIEUX[self._type_lieu]
+
+    # ========================================================
+    # GETTERS
+    # ========================================================
+
+    def get_nom(self):
+        """
+        Renvoie le nom du lieu.
+
+        :return: nom du lieu
+        :rtype: str
+        """
+        return self._nom
+
+
+    def get_type(self):
+        """
+        Renvoie le type du lieu.
+
+        :return: type du lieu
+        :rtype: str
+        """
+        return self._type_lieu
+
+    def get_description(self):
+        """
+        Renvoie la description narrative du lieu.
+
+        :return: description du lieu
+        :rtype: str
+        """
+        return self._description
+
+    # ========================================================
+    # MODIFICATEURS DE COMBAT
+    # ========================================================
+
+    def get_attack_modifier(self, classe):
+        """
+        Renvoie le coefficient de modification des attaques
+        selon le lieu et la classe.
+
+        :param classe: classe du personnage
+        :type classe: str
+        :return: coefficient multiplicatif
+        :rtype: float
+        """
+        assert type(classe) == str and classe in CLASSES, 'classe inconnue'
+        return self.modificateurs["attack"][classe]
+        
+
+    def get_heal_modifier(self, classe):
+        """
+        Renvoie le coefficient de modification des soins
+        selon le lieu et la classe.
+
+        :param classe: classe du personnage
+        :type classe: str
+        :return: coefficient multiplicatif
+        :rtype: float
+        """
+        assert type(classe) == str and classe in CLASSES, 'classe inconnue'
+        return self.modificateurs["heal"][classe]
+
+
+# ============================================================
+# TESTS
+# ============================================================
+if __name__ == "__main__":
+    
+    print("=== TEST LIEU ===\n")
+    
+    classe = "Elfe"
+    for type_lieu in ["Taverne", "Desert", "Caverne"]:
+        print(f"test de lieu de type {type_lieu}")
+        lieu = LieuRPG(type_lieu, f"le nom de {type_lieu}", f"description de {type_lieu}")
+
+        print(f"Nom : {lieu.get_nom()}")
+        print(f"Description: {lieu.get_description()}")
+        print(f"attack modificateur: {lieu.get_attack_modifier(classe)}")
+        assert lieu.get_attack_modifier(classe) == MODIFICATEURS_LIEUX[type_lieu]['attack'][classe]
+        print(f"heal modificateur: {lieu.get_heal_modifier(classe)}")
+        assert lieu.get_heal_modifier(classe) == MODIFICATEURS_LIEUX[type_lieu]['heal'][classe]
+        print()
+
+    print("-" * 50 + "\n")
+
+    print("Tests LieuRPG OK")
+
+------------------------------------------------------------------------------------------------------------------------------------
+#code5 lieu
+
+
+Description
+-----------
+Classe représentant un lieu du RPG.
+
+Un lieu :
+- possède un type, un nom et une description narrative
+- influence le combat via des modificateurs d’attaque et de soin
+- ne contient aucune logique de combat ou de narration
+"""
+
+from consts import MODIFICATEURS_LIEUX, LIEUX, CLASSES
+
+
+class LieuRPG:
+    """
+    Représente un lieu du jeu.
+
+    Attributs
+    ----------
+    _type_lieu : str
+        Type du lieu (Taverne, Desert, Caverne)
+    _nom : str
+        Nom du lieu
+    _description : str
+        Description narrative du lieu
+    """
+
+    def __init__(self, type_lieu, nom, description):
+        """
+        Initialise un lieu.
+
+        :param type_lieu: type du lieu
+        :type type_lieu: str
+        :param nom: nom du lieu
+        :type nom: str
+        :param description: description narrative
+        :type description: str
+        """
+        assert type(type_lieu) == str and type_lieu in LIEUX, 'lieu inconnu'
+        assert type(nom) == str, 'doit etre str'
+        # bizarre : les descriptions dans messages sont sous forme de tuples...?
+        for s in description:
+            assert type(s) == str, "doit etre du texte"
+        self._description = "".join(description)
+        self._type_lieu = type_lieu
+        self._nom = nom
+        self.modificateurs = MODIFICATEURS_LIEUX[self._type_lieu]
+
+    # ========================================================
+    # GETTERS
+    # ========================================================
+
+    def get_nom(self):
+        """
+        Renvoie le nom du lieu.
+
+        :return: nom du lieu
+        :rtype: str
+        """
+        return self._nom
+
+
+    def get_type(self):
+        """
+        Renvoie le type du lieu.
+
+        :return: type du lieu
+        :rtype: str
+        """
+        return self._type_lieu
+
+    def get_description(self):
+        """
+        Renvoie la description narrative du lieu.
+
+        :return: description du lieu
+        :rtype: str
+        """
+        return self._description
+
+    # ========================================================
+    # MODIFICATEURS DE COMBAT
+    # ========================================================
+
+    def get_attack_modifier(self, classe):
+        """
+        Renvoie le coefficient de modification des attaques
+        selon le lieu et la classe.
+
+        :param classe: classe du personnage
+        :type classe: str
+        :return: coefficient multiplicatif
+        :rtype: float
+        """
+        assert type(classe) == str and classe in CLASSES, 'classe inconnue'
+        return self.modificateurs["attack"][classe]
+        
+
+    def get_heal_modifier(self, classe):
+        """
+        Renvoie le coefficient de modification des soins
+        selon le lieu et la classe.
+
+        :param classe: classe du personnage
+        :type classe: str
+        :return: coefficient multiplicatif
+        :rtype: float
+        """
+        assert type(classe) == str and classe in CLASSES, 'classe inconnue'
+        return self.modificateurs["heal"][classe]
+
+
+# ============================================================
+# TESTS
+# ============================================================
+if __name__ == "__main__":
+    
+    print("=== TEST LIEU ===\n")
+    
+    classe = "Elfe"
+    for type_lieu in ["Taverne", "Desert", "Caverne"]:
+        print(f"test de lieu de type {type_lieu}")
+        lieu = LieuRPG(type_lieu, f"le nom de {type_lieu}", f"description de {type_lieu}")
+
+        print(f"Nom : {lieu.get_nom()}")
+        print(f"Description: {lieu.get_description()}")
+        print(f"attack modificateur: {lieu.get_attack_modifier(classe)}")
+        assert lieu.get_attack_modifier(classe) == MODIFICATEURS_LIEUX[type_lieu]['attack'][classe]
+        print(f"heal modificateur: {lieu.get_heal_modifier(classe)}")
+        assert lieu.get_heal_modifier(classe) == MODIFICATEURS_LIEUX[type_lieu]['heal'][classe]
+        print()
+
+    print("-" * 50 + "\n")
+
+    print("Tests LieuRPG OK")
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#code6 narration
+
+
+Description
+-----------
+Moteur de narration du projet RPG POO.
+
+Ce module transforme les données narratives (messages.py)
+en textes exploitables par :
+- la console (avec couleurs)
+- l’interface graphique (sans couleurs)
+
+Aucune logique métier.
+"""
+
+import random
+
+from consts import COULEURS_CLASSES, ENDC
+import messages
+
+
+class Narration:
+    """
+    Gestionnaire de narration du RPG.
+
+    Cette classe génère des textes narratifs à partir des données
+    définies dans ``messages.py``.
+
+    Elle ne contient aucune logique métier et ne manipule aucun objet
+    du jeu (Personnage, Lieu, Combat, etc.).
+
+    Attributes:
+        color (bool): Active ou désactive la coloration console (ANSI).
+
+    Methods:
+        __init__(color): Initialise le moteur de narration.
+        description_personnage(classe): Retourne une description d’un personnage.
+        description_lieu(type_lieu): Retourne une description d’un lieu.
+        heal_success(classe): Retourne un dialogue de soin réussi.
+        heal_failure(classe): Retourne un dialogue de soin échoué.
+        attack_success(classe, classe_adverse): Retourne un dialogue d’attaque réussie.
+        attack_failure(classe, classe_adverse): Retourne un dialogue d’attaque échouée.
+    """
+
+    def __init__(self, color=True):
+        """
+        Initialise le moteur de narration.
+    
+        :param color: active ou non la coloration console
+        :type color: bool
+        :raises AssertionError: si ``color`` n'est pas un booléen
+        """
+        assert isinstance(color, bool), "color doit être un booléen"
+        self.color = color
+
+    # ========================================================
+    # MÉTHODES INTERNES
+    # ========================================================
+
+    def _colorize(self, classe, texte):
+        """
+        Applique la couleur associée à une classe si la coloration est activée.
+    
+        :param classe: classe du personnage
+        :type classe: str
+        :param texte: texte narratif brut
+        :type texte: str
+        :return: texte éventuellement coloré
+        :rtype: str
+        :raises AssertionError: si les paramètres ne sont pas des chaînes
+        """
+        assert isinstance(classe, str), "classe doit être une str"
+        assert isinstance(texte, str), "texte doit être une str"
+
+        if not self.color:
+            return texte
+
+        if classe in COULEURS_CLASSES:
+            return f"{COULEURS_CLASSES[classe]}{texte}{ENDC}"
+
+        return texte
+
+    # ========================================================
+    # DESCRIPTIONS
+    # ========================================================
+
+    def description_personnage(self, classe):
+        """
+        Retourne une description narrative aléatoire d’un personnage.
+    
+        :param classe: classe du personnage
+        :type classe: str
+        :return: description narrative
+        :rtype: str
+        :raises AssertionError: si la classe est inconnue
+        """
+        assert isinstance(classe, str), "classe doit être une str"
+        assert classe in messages.DESCRIPTIONS_PERSONNAGES, (
+            f"Classe inconnue : {classe}"
+        )
+
+        return random.choice(messages.DESCRIPTIONS_PERSONNAGES[classe])
+
+    def description_lieu(self, type_lieu):
+        """
+        Retourne une description narrative aléatoire d’un lieu.
+    
+        :param type_lieu: type du lieu
+        :type type_lieu: str
+        :return: description narrative
+        :rtype: str
+        :raises AssertionError: si le lieu est inconnu
+        """
+        assert isinstance(type_lieu, str), "type_lieu doit être une str"
+        assert type_lieu in messages.DESCRIPTIONS_LIEUX, (
+            f"Lieu inconnu : {type_lieu}"
+        )
+
+        descriptions = messages.DESCRIPTIONS_LIEUX[type_lieu]["descriptions"]
+        assert isinstance(descriptions, list), "descriptions doit être une liste"
+        assert len(descriptions) > 0, "liste de descriptions vide"
+
+        return random.choice(descriptions)
+
+    # ========================================================
+    # SOINS
+    # ========================================================
+
+    def heal_success(self, classe):
+        """
+        Retourne un dialogue de soin réussi.
+    
+        :param classe: classe du personnage
+        :type classe: str
+        :return: dialogue narratif
+        :rtype: str
+        :raises AssertionError: si la classe est inconnue
+        """
+        assert isinstance(classe, str), "classe doit être une str"
+        assert classe in messages.DIALOGUES_HEAL_SUCCESS, (
+            f"Classe inconnue : {classe}"
+        )
+
+        texte = random.choice(messages.DIALOGUES_HEAL_SUCCESS[classe])
+        return self._colorize(classe, texte)
+
+    def heal_failure(self, classe):
+        """
+        Retourne un dialogue de soin échoué.
+    
+        :param classe: classe du personnage
+        :type classe: str
+        :return: dialogue narratif
+        :rtype: str
+        :raises AssertionError: si la classe est inconnue
+        """
+        assert isinstance(classe, str), "classe doit être une str"
+        assert classe in messages.DIALOGUES_HEAL_FAILURE, (
+            f"Classe inconnue : {classe}"
+        )
+
+        texte = random.choice(messages.DIALOGUES_HEAL_FAILURE[classe])
+        return self._colorize(classe, texte)
+
+    # ========================================================
+    # ATTAQUES
+    # ========================================================
+
+    def attack_success(self, classe, classe_adverse):
+        """
+        Retourne un dialogue d’attaque réussie.
+    
+        :param classe: classe de l’attaquant
+        :type classe: str
+        :param classe_adverse: classe de la cible
+        :type classe_adverse: str
+        :return: dialogue narratif
+        :rtype: str
+        :raises AssertionError: si une classe est inconnue
+        """
+        assert isinstance(classe, str)
+        assert isinstance(classe_adverse, str)
+        assert classe in messages.DIALOGUES_ATTACK_SUCCESS
+        assert classe_adverse in messages.DIALOGUES_ATTACK_SUCCESS[classe]
+
+        texte = random.choice(
+            messages.DIALOGUES_ATTACK_SUCCESS[classe][classe_adverse]
+        )
+        return self._colorize(classe, texte)
+
+    def attack_failure(self, classe, classe_adverse):
+        """
+        Retourne un dialogue d’attaque échouée.
+    
+        :param classe: classe de l’attaquant
+        :type classe: str
+        :param classe_adverse: classe de la cible
+        :type classe_adverse: str
+        :return: dialogue narratif
+        :rtype: str
+        :raises AssertionError: si une classe est inconnue
+        """
+        assert isinstance(classe, str)
+        assert isinstance(classe_adverse, str)
+        assert classe in messages.DIALOGUES_ATTACK_FAILURE
+        assert classe_adverse in messages.DIALOGUES_ATTACK_FAILURE[classe]
+
+        texte = random.choice(
+            messages.DIALOGUES_ATTACK_FAILURE[classe][classe_adverse]
+        )
+        return self._colorize(classe, texte)
+
+
+# ============================================================
+# TESTS
+# ============================================================
+
+if __name__ == "__main__":
+
+    narration_color = Narration(color=True)
+    narration_nocolor = Narration(color=False)
+
+    print("\n=== TEST DESCRIPTIONS PERSONNAGES ===\n")
+    for classe in messages.DESCRIPTIONS_PERSONNAGES:
+        print(f"[{classe}]")
+        print(narration_nocolor.description_personnage(classe))
+        print()
+
+    print("\n=== TEST DESCRIPTIONS LIEUX ===\n")
+    for lieu in messages.DESCRIPTIONS_LIEUX:
+        print(f"[{lieu}]")
+        print(narration_nocolor.description_lieu(lieu))
+        print()
+
+    print("\n=== TEST HEAL SUCCESS / FAILURE ===\n")
+    for classe in messages.DIALOGUES_HEAL_SUCCESS:
+        print(f"[{classe}] SUCCESS :")
+        print(narration_color.heal_success(classe))
+        print(f"[{classe}] FAILURE :")
+        print(narration_color.heal_failure(classe))
+        print()
+
+    print("\n=== TEST ATTACK SUCCESS / FAILURE ===\n")
+    for classe in messages.DIALOGUES_ATTACK_SUCCESS:
+        for cible in messages.DIALOGUES_ATTACK_SUCCESS[classe]:
+            print(f"[{classe} → {cible}] SUCCESS :")
+            print(narration_color.attack_success(classe, cible))
+            print(f"[{classe} → {cible}] FAILURE :")
+            print(narration_color.attack_failure(classe, cible))
+            print()
+
+    print("\n=== FIN DES TESTS NARRATION ===")
+
