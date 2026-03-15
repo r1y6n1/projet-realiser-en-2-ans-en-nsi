@@ -1,0 +1,94 @@
+from p5 import *
+from random import randint
+import math
+
+largeur = 400
+hauteur = 400
+xA = largeur // 2
+yA = hauteur // 2
+xG = randint(30, largeur - 30)
+yG = randint(30, hauteur - 30)
+deplacement_xA = 1.5
+deplacement_yA = 1.5
+score = 0
+direction = 'droite'
+perdu = False
+
+def setup():
+    createCanvas(largeur, hauteur)
+
+def dessiner_pacman(x, y, dir):
+    fill('yellow')
+    noStroke()
+    if dir == 'droite':
+        arc(x, y, 24, 24, radians(25), radians(335))
+    elif dir == 'gauche':
+        arc(x, y, 24, 24, radians(205), radians(155))
+    elif dir == 'haut':
+        arc(x, y, 24, 24, radians(295), radians(245))
+    elif dir == 'bas':
+        arc(x, y, 24, 24, radians(115), radians(65))
+    # oeil
+    fill('black')
+    if dir == 'droite':
+        circle(x - 2, y - 5, 4)
+    elif dir == 'gauche':
+        circle(x + 2, y - 5, 4)
+    elif dir == 'haut':
+        circle(x + 4, y + 2, 4)
+    elif dir == 'bas':
+        circle(x - 4, y - 2, 4)
+
+def draw():
+    global xA, yA, xG, yG, score, deplacement_xA, deplacement_yA, direction, perdu
+
+    background(121, 28, 248)
+    fill('black')
+    textSize(16)
+    text(f"Score: {score}", 10, 20)
+
+    if perdu:
+        fill('red')
+        textSize(26)
+        textAlign(CENTER)
+        text("Perdu !", largeur / 2, hauteur / 2)
+        textAlign(LEFT)
+        noLoop()
+        return
+
+    # gomme
+    fill('red')
+    noStroke()
+    circle(xG, yG, 10)
+
+    # pac-man
+    dessiner_pacman(xA, yA, direction)
+
+    # déplacements
+    if keyIsPressed:
+        if key == '=' or key == 'Z':
+            yA -= deplacement_yA
+            direction = 'haut'
+        elif key == 'ù' or key == 'S':
+            yA += deplacement_yA
+            direction = 'bas'
+        elif key == '$' or key == 'Q':
+            xA -= deplacement_xA
+            direction = 'gauche'
+        elif key == '^' or key == 'D':
+            xA += deplacement_xA
+            direction = 'droite'
+
+    # collision avec la gomme
+    if dist(xA, yA, xG, yG) < 15:
+        score += 1
+        deplacement_xA = min(deplacement_xA + 0.5, 8)
+        deplacement_yA = min(deplacement_yA + 0.5, 8)
+        xG = randint(30, largeur - 30)
+        yG = randint(30, hauteur - 30)
+
+    # sortie du canvas
+    if xA < 0 or xA > largeur or yA < 0 or yA > hauteur:
+        perdu = True
+
+run()
