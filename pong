@@ -1,0 +1,72 @@
+largeur = 400
+hauteur = 300
+xA = 0
+yA = hauteur // 2
+deplacement_x = 2
+deplacement_y = 1
+score = 0
+
+def setup():
+    createCanvas(largeur, hauteur)
+
+def draw():
+    global xA, yA, deplacement_x, deplacement_y, score
+
+    background('black')
+
+    # Raquette
+    fill('white')
+    rect(30, mouseY - 30, 10, 60)
+
+    # Balle (rayon 10)
+    fill('white')
+    circle(xA, yA, 20)
+
+    # Score
+    textSize(13)
+    fill('white')
+    text(f"Score: {score}", largeur / 2 - 30, 20)
+
+    # --- Mouvements ---
+    xA += deplacement_x
+    yA += deplacement_y
+
+    # Rebond plafond et sol (bord de la balle = rayon 10)
+    if yA - 10 <= 0:
+        yA = 10
+        deplacement_y = abs(deplacement_y)
+    if yA + 10 >= hauteur:
+        yA = hauteur - 10
+        deplacement_y = -abs(deplacement_y)
+
+    # Rebond mur droit
+    if xA + 10 >= largeur:
+        xA = largeur - 10
+        deplacement_x = -abs(deplacement_x)
+
+    # --- Collision raquette (anti-tunnel) ---
+    # On teste le bord gauche de la balle contre la face avant de la raquette (x=40)
+    # et on vérifie que la balle va bien vers la gauche (deplacement_x < 0)
+    balle_gauche = xA - 10
+    if deplacement_x < 0 and balle_gauche <= 40 and balle_gauche >= 20 and abs(mouseY - yA) < 35:
+        xA = 50  # repositionne la balle devant la raquette pour éviter double collision
+        deplacement_x = abs(deplacement_x) + 0.4
+        if deplacement_y > 0:
+            deplacement_y = abs(deplacement_y) + 0.4
+        else:
+            deplacement_y = -(abs(deplacement_y) + 0.4)
+        score += 1
+
+    # --- Balle sortie à gauche = perdu ---
+    if xA + 10 < 0:
+        fill('red')
+        textSize(23)
+        textAlign(CENTER)
+        text("Perdu !", largeur / 2, hauteur / 2)
+        textAlign(LEFT)
+
+    # Pause au clic
+    if mouseIsPressed:
+        stop()
+
+run()
